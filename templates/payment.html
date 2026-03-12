@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payment — Magic Movies</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="nav-inner">
+    <a href="/movies" class="nav-logo"><span class="nav-logo-icon">🎬</span>Magic Movies</a>
+    <div class="nav-links">
+      <a href="javascript:history.back()" class="nav-link">← Back</a>
+    </div>
+    <div class="nav-right">
+      <div class="nav-user-btn">
+        <div class="nav-av">{{ user_name[0].upper() if user_name else 'U' }}</div>
+        <span class="nav-uname">{{ user_name }}</span>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<div class="payment-page">
+  <div class="container">
+
+    <div class="steps-nav" style="margin-bottom:28px;">
+      <div class="step-node done"><div class="step-circle">✓</div><span>Movie</span></div>
+      <div class="step-conn"></div>
+      <div class="step-node done"><div class="step-circle">✓</div><span>Date &amp; Time</span></div>
+      <div class="step-conn"></div>
+      <div class="step-node done"><div class="step-circle">✓</div><span>Seats</span></div>
+      <div class="step-conn"></div>
+      <div class="step-node active"><div class="step-circle">4</div><span>Payment</span></div>
+    </div>
+
+    <!-- Timer -->
+    <div style="background:rgba(245,166,35,0.1);border:1px solid rgba(245,166,35,0.22);border-radius:var(--radius);padding:11px 18px;display:flex;align-items:center;gap:10px;margin-bottom:22px;">
+      <span>⏱</span>
+      <span style="color:var(--gold);font-size:13px;font-weight:600;">Seats held for <span id="timer">09:59</span> — complete your booking now</span>
+    </div>
+
+    <form id="pay-form" method="POST" action="/confirm-payment">
+      <input type="hidden" id="selected-method" name="pay_method" value="UPI">
+    </form>
+
+    <div class="pay-layout">
+      <!-- LEFT: Payment -->
+      <div>
+        <h3 style="font-size:16px;font-weight:700;margin-bottom:16px;">Select Payment Method</h3>
+
+        <div class="pay-methods-list">
+          <div class="pay-method-card sel" data-method="upi">
+            <div class="pay-icon-box">📱</div>
+            <div><div class="pay-label">UPI</div><div class="pay-sublbl">GPay, PhonePe, Paytm &amp; more</div></div>
+            <div class="pay-radio on"></div>
+          </div>
+          <div class="pay-method-card" data-method="debit">
+            <div class="pay-icon-box">💳</div>
+            <div><div class="pay-label">Debit Card</div><div class="pay-sublbl">Visa, Mastercard, RuPay</div></div>
+            <div class="pay-radio"></div>
+          </div>
+          <div class="pay-method-card" data-method="credit">
+            <div class="pay-icon-box">🏦</div>
+            <div><div class="pay-label">Credit Card</div><div class="pay-sublbl">All major cards, EMI available</div></div>
+            <div class="pay-radio"></div>
+          </div>
+          <div class="pay-method-card" data-method="wallet">
+            <div class="pay-icon-box">👝</div>
+            <div><div class="pay-label">Mobile Wallet</div><div class="pay-sublbl">Paytm, Amazon Pay</div></div>
+            <div class="pay-radio"></div>
+          </div>
+        </div>
+
+        <!-- UPI FORM -->
+        <div id="upi-form">
+          <h4 style="font-size:14px;font-weight:600;margin-bottom:12px;color:var(--text2);">Choose UPI App</h4>
+          <div class="upi-apps-grid">
+            <div class="upi-app-card" onclick="selUpi(this,'GPay')">
+              <span class="upi-app-icon">🟢</span><span class="upi-app-name">Google Pay</span>
+            </div>
+            <div class="upi-app-card sel" onclick="selUpi(this,'PhonePe')">
+              <span class="upi-app-icon">🟣</span><span class="upi-app-name">PhonePe</span>
+            </div>
+            <div class="upi-app-card" onclick="selUpi(this,'Paytm')">
+              <span class="upi-app-icon">🔵</span><span class="upi-app-name">Paytm</span>
+            </div>
+            <div class="upi-app-card" onclick="selUpi(this,'BHIM')">
+              <span class="upi-app-icon">🟡</span><span class="upi-app-name">BHIM UPI</span>
+            </div>
+          </div>
+          <div class="pin-section">
+            <div class="pin-title">🔒 Enter UPI PIN</div>
+            <div class="pin-sub">Payment request sent to your UPI app</div>
+            <div class="pin-boxes">
+              <input class="pin-box" type="password" maxlength="1" inputmode="numeric">
+              <input class="pin-box" type="password" maxlength="1" inputmode="numeric">
+              <input class="pin-box" type="password" maxlength="1" inputmode="numeric">
+              <input class="pin-box" type="password" maxlength="1" inputmode="numeric">
+              <input class="pin-box" type="password" maxlength="1" inputmode="numeric">
+              <input class="pin-box" type="password" maxlength="1" inputmode="numeric">
+            </div>
+            <div class="pin-secure">🛡️ 256-bit encrypted · PIN never stored</div>
+          </div>
+        </div>
+
+        <!-- CARD FORM -->
+        <div id="card-form" class="card-form">
+          <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:20px;">
+            <div class="form-group">
+              <label class="form-label">Card Number</label>
+              <input class="form-input" type="text" placeholder="1234  5678  9012  3456" maxlength="19">
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+              <div class="form-group">
+                <label class="form-label">Expiry</label>
+                <input class="form-input" type="text" placeholder="MM / YY">
+              </div>
+              <div class="form-group">
+                <label class="form-label">CVV</label>
+                <input class="form-input" type="password" placeholder="•••" maxlength="3">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Cardholder Name</label>
+              <input class="form-input" type="text" placeholder="Full Name">
+            </div>
+          </div>
+        </div>
+
+        <button id="pay-now-btn" class="btn btn-red btn-lg btn-full" style="margin-top:18px;">
+          🔒 Pay ₹{{ bd.get('total','—') }}
+        </button>
+        <div style="display:flex;align-items:center;justify-content:center;gap:14px;margin-top:12px;color:var(--text3);font-size:11px;">
+          <span>🔐 Secure</span><span>·</span><span>🏦 PCI DSS</span><span>·</span><span>🛡️ Fraud Protected</span>
+        </div>
+      </div>
+
+      <!-- RIGHT: Order summary with REAL POSTER -->
+      <div>
+        <div class="order-box">
+          <div class="order-title">📋 Order Summary</div>
+
+          <!-- Movie with poster image -->
+          <div style="display:flex;gap:14px;align-items:flex-start;padding:14px 0 16px;border-bottom:1px solid var(--border);margin-bottom:4px;">
+            <div style="width:64px;height:88px;border-radius:10px;overflow:hidden;flex-shrink:0;border:1px solid var(--border2);box-shadow:0 4px 16px rgba(0,0,0,0.4);">
+              {% if bd.get('poster_key') %}
+              <img src="{{ url_for('static', filename='images/' + bd.poster_key + '.jpg') }}"
+                   alt="{{ bd.get('movie_title','') }}" style="width:100%;height:100%;object-fit:cover;">
+              {% else %}
+              <div style="width:100%;height:100%;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:24px;">🎬</div>
+              {% endif %}
+            </div>
+            <div>
+              <div style="font-weight:700;font-size:14px;margin-bottom:4px;line-height:1.3;">{{ bd.get('movie_title','Movie Title') }}</div>
+              <div style="color:var(--text3);font-size:11px;margin-bottom:3px;">{{ bd.get('theatre','Theatre') }}</div>
+              <div style="background:var(--red-dim);color:var(--red2);font-size:11px;font-weight:600;padding:2px 8px;border-radius:4px;display:inline-block;">Now Showing</div>
+            </div>
+          </div>
+
+          <div class="o-row"><span class="o-k">📅 Date</span><span class="o-v">{{ bd.get('show_date','—') }}</span></div>
+          <div class="o-row"><span class="o-k">🕐 Time</span><span class="o-v">{{ bd.get('show_time','—') }}</span></div>
+          <div class="o-row"><span class="o-k">💺 Seats</span><span class="o-v" style="color:var(--red2);">{{ bd.get('seats','—') }}</span></div>
+          <div class="o-row"><span class="o-k">🏷️ Category</span><span class="o-v">{{ bd.get('seat_cat','—') }}</span></div>
+          <div style="height:1px;background:var(--border);margin:4px 0;"></div>
+          <div class="o-row"><span class="o-k">Ticket Price</span><span class="o-v">₹{{ (bd.get('total',40)|int) - 40 }}</span></div>
+          <div class="o-row"><span class="o-k">Convenience Fee</span><span class="o-v" style="color:var(--text2);">₹40</span></div>
+          <div class="o-total-row">
+            <span class="o-total-k">Total Amount</span>
+            <span class="o-total-v">₹{{ bd.get('total','—') }}</span>
+          </div>
+
+          <div class="o-security">✅ Your booking is fully protected</div>
+
+          <div style="margin-top:12px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;">
+            <div style="font-size:11px;font-weight:700;color:var(--gold);margin-bottom:6px;">🎁 Available Offers</div>
+            <div style="font-size:11px;color:var(--text3);line-height:1.8;">
+              • MAGIC50 — ₹50 off on UPI payments<br>
+              • AXIS10 — 10% cashback on Axis Bank cards<br>
+              • WELCOME20 — First booking discount
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+<script>
+function selUpi(el,name){
+  document.querySelectorAll('.upi-app-card').forEach(a=>a.classList.remove('sel'));
+  el.classList.add('sel');
+  document.getElementById('selected-method').value=name;
+}
+
+// Countdown
+let secs=9*60+59;
+const tEl=document.getElementById('timer');
+const iv=setInterval(()=>{
+  if(secs<=0){clearInterval(iv);tEl.textContent='00:00';return;}
+  secs--;
+  const m=String(Math.floor(secs/60)).padStart(2,'0');
+  const s=String(secs%60).padStart(2,'0');
+  tEl.textContent=`${m}:${s}`;
+  if(secs<60)tEl.style.color='#ff6b6b';
+},1000);
+</script>
+</body>
+</html>

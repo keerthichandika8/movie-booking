@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your Ticket — Magic Movies</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <style>
+    .tkt-poster-strip {
+      width: 100%; height: 220px; position: relative; overflow: hidden;
+    }
+    .tkt-poster-strip img {
+      width: 100%; height: 100%;
+      object-fit: cover; object-position: center top;
+      display: block;
+    }
+    .tkt-poster-strip::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(to bottom,
+        rgba(10,10,15,0.1) 0%,
+        rgba(10,10,15,0.5) 60%,
+        rgba(18,18,20,1) 100%);
+    }
+    .tkt-poster-overlay-text {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      padding: 16px 28px 20px; z-index: 2;
+    }
+    @media print {
+      .navbar, .success-top, .tkt-actions, .footer, .after-ticket, .no-print { display: none !important; }
+      body { background: #fff !important; }
+      .ticket-card { box-shadow: none !important; border: 1px solid #ddd !important; }
+      .container-sm { padding: 0 !important; }
+    }
+  </style>
+</head>
+<body>
+
+<nav class="navbar no-print">
+  <div class="nav-inner">
+    <a href="/movies" class="nav-logo"><span class="nav-logo-icon">🎬</span>Magic Movies</a>
+    <div class="nav-links">
+      <a href="/movies" class="nav-link">🏠 Home</a>
+    </div>
+    <div class="nav-right">
+      <div class="nav-user-btn">
+        <div class="nav-av">{{ user_name[0].upper() if user_name else 'U' }}</div>
+        <span class="nav-uname">{{ user_name }}</span>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<div class="ticket-page">
+  <div class="container-sm">
+
+    <!-- SUCCESS -->
+    <div class="success-top no-print">
+      <div class="success-check">
+        <svg viewBox="0 0 28 28" fill="none" stroke="#12b76a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 14l6 6L23 8"/>
+        </svg>
+      </div>
+      <div class="success-info">
+        <h3>Booking Confirmed! 🎉</h3>
+        <p>Hey {{ user_name }}, your tickets are confirmed. Enjoy the show!</p>
+      </div>
+    </div>
+
+    <!-- THE TICKET -->
+    <div class="ticket-card" id="ticket-card">
+
+      <!-- MOVIE POSTER as ticket header -->
+      <div class="tkt-poster-strip">
+        {% if poster_key %}
+        <img src="{{ url_for('static', filename='images/' + poster_key + '.jpg') }}"
+             alt="{{ booking.movie_title }}">
+        {% else %}
+        <div style="width:100%;height:100%;background:linear-gradient(135deg,#1a0000,#0a0a1a);display:flex;align-items:center;justify-content:center;font-size:80px;">🎬</div>
+        {% endif %}
+        <div class="tkt-poster-overlay-text">
+          <div style="font-size:22px;font-weight:900;letter-spacing:-0.5px;text-shadow:0 2px 8px rgba(0,0,0,0.8);">{{ booking.movie_title }}</div>
+          <div style="color:rgba(255,255,255,0.65);font-size:12px;margin-top:3px;text-shadow:0 1px 4px rgba(0,0,0,0.8);">{{ booking.theatre }}</div>
+        </div>
+      </div>
+
+      <!-- NOTCH DIVIDER -->
+      <div class="tkt-notch-row" style="background:var(--bg2);">
+        <div class="tkt-notch l"></div>
+        <hr class="tkt-dash">
+        <div class="tkt-notch r"></div>
+      </div>
+
+      <!-- TICKET BODY -->
+      <div class="tkt-body">
+        <div class="tkt-grid">
+          <div class="tkt-field">
+            <div class="tkt-label">Show Date</div>
+            <div class="tkt-value">{{ booking.show_date }}</div>
+          </div>
+          <div class="tkt-field">
+            <div class="tkt-label">Show Time</div>
+            <div class="tkt-value red">{{ booking.show_time }}</div>
+          </div>
+          <div class="tkt-field" style="grid-column:1/-1;">
+            <div class="tkt-label">Seats</div>
+            <div class="seats-tags">
+              {% for seat in booking.seats.split(', ') if seat %}
+              <span class="seat-tag">{{ seat }}</span>
+              {% endfor %}
+            </div>
+          </div>
+          <div class="tkt-field">
+            <div class="tkt-label">Category</div>
+            <div class="tkt-value">{{ booking.seat_category }}</div>
+          </div>
+          <div class="tkt-field">
+            <div class="tkt-label">Payment Via</div>
+            <div class="tkt-value">{{ booking.payment_method }}</div>
+          </div>
+          <div class="tkt-field">
+            <div class="tkt-label">Amount Paid</div>
+            <div class="tkt-value gold">₹{{ booking.total_amount }}</div>
+          </div>
+          <div class="tkt-field">
+            <div class="tkt-label">Booked On</div>
+            <div class="tkt-value" style="font-size:12px;">{{ booking.booked_at[:16] if booking.booked_at else '—' }}</div>
+          </div>
+        </div>
+
+        <!-- QR CODE -->
+        <div class="qr-wrap">
+          <div class="qr-grid" id="qr-grid"></div>
+          <div class="qr-id">{{ booking.booking_id }}</div>
+        </div>
+
+        <div class="tkt-bid">BOOKING ID: {{ booking.booking_id }}</div>
+        <div class="barcode-wrap" id="barcode"></div>
+      </div>
+
+      <div class="tkt-note">
+        📌 Present this ticket at the theatre entrance · 🚫 No refunds or exchanges<br>
+        📞 Support: 1800-MAGIC-100 · help@magicmovies.in
+      </div>
+
+      <!-- ACTIONS WITH DOWNLOAD ICON BUTTON -->
+      <div class="tkt-actions no-print">
+        <button class="btn-download" id="download-btn" onclick="downloadTicket()">
+          <!-- SVG Download Icon -->
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+               fill="none" stroke="currentColor" stroke-width="2.5"
+               stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          Download Ticket
+        </button>
+        <button class="btn btn-outline" onclick="window.print()"
+                style="flex:0.55;border-radius:10px;padding:13px;font-size:13px;">
+          🖨️ Print
+        </button>
+        <button class="btn btn-outline" onclick="shareTicket()"
+                style="flex:0.55;border-radius:10px;padding:13px;font-size:13px;">
+          📤 Share
+        </button>
+      </div>
+    </div>
+
+    <!-- DETAILED BREAKDOWN (BookMyShow-style) -->
+    <div class="after-ticket no-print" style="margin-top:24px;">
+
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:18px;">
+
+        <!-- Header row with poster thumb -->
+        <div style="padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px;">
+          <div style="width:48px;height:66px;border-radius:8px;overflow:hidden;flex-shrink:0;border:1px solid var(--border2);">
+            {% if poster_key %}
+            <img src="{{ url_for('static', filename='images/' + poster_key + '.jpg') }}"
+                 style="width:100%;height:100%;object-fit:cover;" alt="">
+            {% endif %}
+          </div>
+          <div>
+            <div style="font-weight:700;font-size:15px;">{{ booking.movie_title }}</div>
+            <div style="color:var(--text3);font-size:12px;margin-top:2px;">Complete Booking Details</div>
+          </div>
+          <div style="margin-left:auto;text-align:right;">
+            <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;">Booking ID</div>
+            <div style="font-size:14px;font-weight:800;color:var(--red2);">{{ booking.booking_id }}</div>
+          </div>
+        </div>
+
+        {% for label, value in [
+          ('🏟️ Theatre', booking.theatre),
+          ('📅 Show Date', booking.show_date),
+          ('🕐 Show Time', booking.show_time),
+          ('💺 Seats', booking.seats),
+          ('🏷️ Seat Category', booking.seat_category),
+          ('💳 Payment Method', booking.payment_method),
+          ('💰 Total Paid', '₹' ~ booking.total_amount),
+          ('🎫 Booking ID', booking.booking_id),
+        ] %}
+        <div style="display:flex;justify-content:space-between;padding:11px 22px;border-bottom:1px solid var(--border);font-size:13px;">
+          <span style="color:var(--text2);">{{ label }}</span>
+          <span style="font-weight:600;text-align:right;max-width:220px;">{{ value }}</span>
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- Action buttons -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+        <a href="/movies" class="btn btn-red" style="border-radius:12px;padding:14px;font-size:14px;">🎬 Book Another</a>
+        <button onclick="downloadTicket()" class="btn btn-outline"
+                style="border-radius:12px;padding:14px;font-size:14px;display:flex;align-items:center;justify-content:center;gap:8px;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+               fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          Save PDF
+        </button>
+      </div>
+
+      <div style="background:var(--gold-dim);border:1px solid rgba(245,166,35,0.2);border-radius:var(--radius);padding:14px 16px;font-size:12px;color:var(--gold);line-height:1.85;">
+        💡 <strong>Reminder:</strong> Carry a valid government ID to the theatre. Arrive 15 minutes early for smooth entry. Outside food &amp; beverages are not permitted.
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<footer class="footer no-print">
+  <div class="container">
+    <div class="footer-inner">
+      <div class="footer-logo">🎬 Magic Movies</div>
+      <div class="footer-copy">© 2025 Magic Movies. All rights reserved.</div>
+      <a href="/logout" style="color:var(--text3);font-size:12px;">Logout</a>
+    </div>
+  </div>
+</footer>
+
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+<script>
+  buildQR('qr-grid', '{{ booking.booking_id }}');
+  buildBarcode('barcode');
+
+  function shareTicket() {
+    const text = `🎬 My Movie Ticket!\n\n🎥 {{ booking.movie_title }}\n🏟️ {{ booking.theatre }}\n📅 {{ booking.show_date }} · {{ booking.show_time }}\n💺 Seats: {{ booking.seats }}\n💰 ₹{{ booking.total_amount }} paid\n🎫 ID: {{ booking.booking_id }}`;
+    if (navigator.share) {
+      navigator.share({ title: 'My Movie Ticket', text });
+    } else if (navigator.clipboard) {
+      navigator.clipboard.writeText(text).then(() => showToast('✓ Ticket details copied!'));
+    }
+  }
+</script>
+</body>
+</html>

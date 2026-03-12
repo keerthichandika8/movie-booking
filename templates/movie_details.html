@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ movie.title }} — Magic Movies</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <style>
+    .details-poster-img {
+      width: 100%; height: 100%;
+      object-fit: cover; display: block; border-radius: inherit;
+    }
+    .details-poster-wrap {
+      flex-shrink: 0; width: 230px; aspect-ratio: 2/3;
+      border-radius: var(--radius-lg); overflow: hidden;
+      border: 1px solid var(--border2);
+      box-shadow: 0 32px 80px rgba(0,0,0,0.8);
+      position: relative;
+    }
+    .details-poster-wrap::after {
+      content: '';
+      position: absolute; bottom: 0; left: 0; right: 0; height: 30%;
+      background: linear-gradient(to top, rgba(0,0,0,0.5), transparent);
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="nav-inner">
+    <a href="/movies" class="nav-logo"><span class="nav-logo-icon">🎬</span>Magic Movies</a>
+    <div class="nav-search">
+      <span class="nav-search-icon">🔍</span>
+      <input type="text" id="nav-search" placeholder="Search movies…" autocomplete="off">
+      <div class="search-dropdown" id="search-dropdown"></div>
+    </div>
+    <div class="nav-links">
+      <a href="/movies" class="nav-link">← Movies</a>
+    </div>
+    <div class="nav-right">
+      <div class="nav-user-btn">
+        <div class="nav-av">{{ user_name[0].upper() if user_name else 'U' }}</div>
+        <span class="nav-uname">{{ user_name }}</span>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- BLURRED POSTER BACKGROUND BANNER -->
+<div class="details-hero" style="position:relative;overflow:hidden;">
+  <!-- Blurred poster as backdrop -->
+  <div style="position:absolute;inset:0;z-index:0;">
+    <img src="{{ url_for('static', filename='images/' + movie.poster_key + '.jpg') }}"
+         alt="" style="width:100%;height:100%;object-fit:cover;filter:blur(28px) brightness(0.28) saturate(1.4);transform:scale(1.08);">
+  </div>
+  <div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(10,10,15,0.3) 0%,rgba(10,10,15,0.7) 70%,rgba(10,10,15,1) 100%);z-index:1;"></div>
+
+  <div class="container" style="position:relative;z-index:2;">
+    <div class="details-layout">
+
+      <!-- REAL POSTER -->
+      <div class="details-poster-wrap">
+        <img class="details-poster-img"
+             src="{{ url_for('static', filename='images/' + movie.poster_key + '.jpg') }}"
+             alt="{{ movie.title }} Poster">
+      </div>
+
+      <!-- INFO -->
+      <div class="details-info">
+        <div class="d-badges">
+          <span class="badge badge-red">Now Showing</span>
+          <span class="badge badge-grey">U/A</span>
+          {% for pt in movie.print_type.split('/') %}
+          <span class="badge badge-grey">{{ pt.strip() }}</span>
+          {% endfor %}
+          <span class="badge badge-gold">{{ movie.language }}</span>
+        </div>
+
+        <h1 class="d-title">{{ movie.title }}</h1>
+
+        <div class="rating-row">
+          <span class="r-star">⭐</span>
+          <span class="r-score">{{ movie.rating }}</span>
+          <span class="r-slash">/10</span>
+          <span style="width:1px;height:18px;background:var(--border2);margin:0 6px;"></span>
+          <span class="r-votes">{{ movie.votes }} Votes</span>
+        </div>
+
+        <div class="d-meta">
+          <span class="meta-chip">⏱ {{ movie.duration }}</span>
+          <span style="width:4px;height:4px;background:var(--text3);border-radius:50%;"></span>
+          <span class="meta-chip">🎭 {{ movie.genre }}</span>
+          <span style="width:4px;height:4px;background:var(--text3);border-radius:50%;"></span>
+          <span class="meta-chip">📅 {{ movie.release_date }}</span>
+        </div>
+
+        <p class="d-desc">{{ movie.description }}</p>
+
+        <div class="d-info-grid">
+          <div class="d-info-cell"><div class="d-info-key">Duration</div><div class="d-info-val">{{ movie.duration }}</div></div>
+          <div class="d-info-cell"><div class="d-info-key">Genre</div><div class="d-info-val">{{ movie.genre }}</div></div>
+          <div class="d-info-cell"><div class="d-info-key">Language</div><div class="d-info-val">{{ movie.language }}</div></div>
+          <div class="d-info-cell"><div class="d-info-key">Release</div><div class="d-info-val">{{ movie.release_date }}</div></div>
+          <div class="d-info-cell"><div class="d-info-key">Print Type</div><div class="d-info-val">{{ movie.print_type }}</div></div>
+          <div class="d-info-cell"><div class="d-info-key">Rating</div><div class="d-info-val">U/A</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BODY -->
+<div class="container" style="padding-bottom:80px;">
+
+  <div class="booked-bar">
+    <div class="live-dot"></div>
+    <div class="booked-txt">🔥 <strong>{{ movie.booked_24h }}</strong> people booked this movie in the last 24 hours</div>
+  </div>
+
+  <!-- CAST & CREW -->
+  <div class="sub-section">
+    <div class="sub-section-title">Cast &amp; Crew</div>
+    {% set cast_list = movie.cast_crew.split(',') %}
+    {% set emojis = ['🧑‍🎤','👨‍🎭','👩‍🎭','🎬','🎵','🧑‍🎨','🎥','🎭','🌟','💫'] %}
+    <div class="cast-grid">
+      {% for person in cast_list %}
+      {% set parts = person.strip().split('(') %}
+      <div class="cast-card">
+        <div class="cast-av" style="background:{{ movie.poster_color }}22;border-color:{{ movie.poster_color }}44;">
+          {{ emojis[loop.index0 % emojis|length] }}
+        </div>
+        <div class="cast-name">{{ parts[0].strip() }}</div>
+        <div class="cast-role">{{ parts[1].replace(')','') if parts|length > 1 else 'Cast' }}</div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- REVIEWS -->
+  <div class="sub-section">
+    <div class="sub-section-title">Top Reviews</div>
+    {% set reviews = [
+      ('Rahul M.','★★★★★','Absolutely mind-blowing! The direction, performances and action sequences are on another level entirely. A must-watch that deserves every rupee. Watched it twice already!'),
+      ('Priya S.','★★★★★','Outstanding performances from the entire cast. The story keeps you glued to your seat from start to finish. Easily the best movie of the year without any doubt.'),
+      ('Kiran T.','★★★★☆','Spectacular visuals and brilliant music. A few slow moments in the second half but the overall experience is a brilliant cinematic achievement worth every penny.'),
+    ] %}
+    <div class="reviews-list">
+      {% for name, stars, text in reviews %}
+      <div class="review-card">
+        <div class="rev-head">
+          <div class="rev-av" style="background:{{ movie.poster_color }}22;">😊</div>
+          <div>
+            <div class="rev-name">{{ name }}</div>
+            <div class="rev-stars">{{ stars }}</div>
+          </div>
+        </div>
+        <div class="rev-text">{{ text }}</div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- BOOK CTA -->
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:40px;text-align:center;margin-top:40px;position:relative;overflow:hidden;">
+    <div style="position:absolute;inset:0;opacity:0.06;">
+      <img src="{{ url_for('static', filename='images/' + movie.poster_key + '.jpg') }}"
+           style="width:100%;height:100%;object-fit:cover;filter:blur(8px);" alt="">
+    </div>
+    <div style="position:relative;z-index:1;">
+      <div style="font-size:48px;margin-bottom:14px;">🎟️</div>
+      <h2 style="font-size:24px;font-weight:800;margin-bottom:8px;">Ready to watch {{ movie.title }}?</h2>
+      <p style="color:var(--text2);margin-bottom:26px;font-size:14px;">Select your preferred date, showtime and seats</p>
+      <a href="/booking/{{ movie.id }}" class="btn btn-red btn-lg" style="display:inline-flex;min-width:240px;">
+        🎬 Book Tickets Now
+      </a>
+    </div>
+  </div>
+
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-inner">
+      <div class="footer-logo">🎬 Magic Movies</div>
+      <div class="footer-copy">© 2025 Magic Movies. All rights reserved.</div>
+    </div>
+  </div>
+</footer>
+
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

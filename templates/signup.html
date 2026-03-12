@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Account — Magic Movies</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<div class="auth-page">
+  <div class="auth-card">
+
+    <div class="auth-logo">
+      <div class="auth-logo-name">🎬 Magic Movies</div>
+      <div class="auth-logo-tag">Book · Watch · Experience</div>
+    </div>
+
+    {% if error %}
+    <div class="alert alert-error">⚠ {{ error }}</div>
+    {% endif %}
+
+    <h2 class="auth-title">Create Account</h2>
+    <p class="auth-sub">Join millions of movie lovers</p>
+
+    <form method="POST" action="/signup">
+      <div class="form-group">
+        <label class="form-label">Full Name</label>
+        <input class="form-input" type="text" name="full_name" placeholder="John Doe" required autofocus>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email Address</label>
+        <input class="form-input" type="email" name="email" placeholder="john@example.com" required>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input class="form-input" type="password" name="password" id="pw1" placeholder="Min. 6 chars" required minlength="6">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Confirm</label>
+          <input class="form-input" type="password" name="confirm_password" id="pw2" placeholder="Re-enter" required>
+        </div>
+      </div>
+      <div id="pw-err" class="alert alert-error" style="display:none;">Passwords do not match</div>
+      <button type="submit" class="btn btn-red btn-full" style="margin-top:6px;" onclick="return checkPw()">
+        Create Account →
+      </button>
+    </form>
+
+    <div class="divider">already have an account?</div>
+    <a href="/login" class="btn btn-outline btn-full">Sign In</a>
+
+  </div>
+</div>
+<script>
+function checkPw() {
+  const match = document.getElementById('pw1').value === document.getElementById('pw2').value;
+  document.getElementById('pw-err').style.display = match ? 'none' : 'block';
+  return match;
+}
+</script>
+</body>
+</html>

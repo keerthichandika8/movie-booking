@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Movies — Magic Movies</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<div class="marquee">
+  <div class="marquee-track">
+    {% for _ in range(3) %}
+    <div class="marquee-item">🎬 NOW SHOWING<span class="m-dot"></span></div>
+    <div class="marquee-item">🍿 BOOK YOUR SEATS<span class="m-dot"></span></div>
+    <div class="marquee-item">🎟️ PREMIUM EXPERIENCE<span class="m-dot"></span></div>
+    <div class="marquee-item">⭐ TOP RATED FILMS<span class="m-dot"></span></div>
+    <div class="marquee-item">🏆 AWARD WINNERS<span class="m-dot"></span></div>
+    <div class="marquee-item">🌟 NEW RELEASES<span class="m-dot"></span></div>
+    {% endfor %}
+  </div>
+</div>
+
+<nav class="navbar">
+  <div class="nav-inner">
+    <a href="/movies" class="nav-logo"><span class="nav-logo-icon">🎬</span>Magic Movies</a>
+    <div class="nav-search">
+      <span class="nav-search-icon">🔍</span>
+      <input type="text" id="nav-search" placeholder="Search movies, genres, languages…" autocomplete="off">
+      <div class="search-dropdown" id="search-dropdown"></div>
+    </div>
+    <div class="nav-links">
+      <a href="/movies" class="nav-link" style="color:var(--red);">Movies</a>
+    </div>
+    <div class="nav-right">
+      <div class="nav-user-btn">
+        <div class="nav-av">{{ user_name[0].upper() if user_name else 'U' }}</div>
+        <span class="nav-uname">{{ user_name }}</span>
+      </div>
+      <a href="/logout" class="btn btn-sm btn-outline">Logout</a>
+    </div>
+  </div>
+</nav>
+
+<div class="hero-banner">
+  <div class="container">
+    <div class="hero-eyebrow">Now Showing</div>
+    <h1 class="hero-title">Your <span>Cinema</span>,<br>Your Choice</h1>
+    <p class="hero-sub">Book tickets for the hottest movies at theatres near you.</p>
+    <div class="hero-stats">
+      <div class="stat-item"><div class="stat-num">{{ recommended|length + recent|length }}</div><div class="stat-lbl">Movies</div></div>
+      <div class="stat-item"><div class="stat-num">50+</div><div class="stat-lbl">Theatres</div></div>
+      <div class="stat-item"><div class="stat-num">1M+</div><div class="stat-lbl">Bookings</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="container" style="padding-top:28px;">
+  <div style="display:flex;gap:9px;flex-wrap:wrap;">
+    {% for g in ['All','Action','Drama','Thriller','Romance','Sci-Fi','Comedy'] %}
+    <button class="filter-chip {% if loop.first %}active{% endif %}"
+      style="border-radius:50px;background:var(--surface);border:1px solid var(--border);color:var(--text2);cursor:pointer;padding:8px 18px;font-family:'Poppins',sans-serif;font-size:12px;font-weight:500;transition:var(--trans);">{{ g }}</button>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- RECOMMENDED -->
+<section class="section">
+  <div class="container">
+    <div class="section-head">
+      <h2 class="section-title">⭐ <em>Recommended</em> for You</h2>
+      <a href="#" class="see-all">See all →</a>
+    </div>
+    <div class="movies-grid">
+      {% for m in recommended %}
+      <a href="/movie/{{ m.id }}" class="movie-card" style="animation-delay:{{ loop.index0 * 0.07 }}s">
+        <div class="movie-poster">
+          <img src="{{ url_for('static', filename='images/' + m.poster_key + '.jpg') }}"
+               alt="{{ m.title }}" style="width:100%;height:100%;object-fit:cover;display:block;">
+          <div class="poster-overlay"></div>
+          <div class="poster-lang">{{ m.language }}</div>
+          <div class="poster-rate">⭐ {{ m.rating }}</div>
+        </div>
+        <div class="card-body">
+          <div class="card-title">{{ m.title }}</div>
+          <div class="card-meta">
+            <span class="card-votes">👥 {{ m.votes }}</span>
+            <span class="card-genre">{{ m.genre.split('/')[0] }}</span>
+          </div>
+          <button class="card-book-btn">Book Tickets</button>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- RECENT -->
+<section class="section" style="padding-top:0;">
+  <div class="container">
+    <div class="section-head">
+      <h2 class="section-title">🆕 <em>Recent</em> Releases</h2>
+      <a href="#" class="see-all">See all →</a>
+    </div>
+    <div class="movies-grid">
+      {% for m in recent %}
+      <a href="/movie/{{ m.id }}" class="movie-card" style="animation-delay:{{ loop.index0 * 0.065 }}s">
+        <div class="movie-poster">
+          <img src="{{ url_for('static', filename='images/' + m.poster_key + '.jpg') }}"
+               alt="{{ m.title }}" style="width:100%;height:100%;object-fit:cover;display:block;">
+          <div class="poster-overlay"></div>
+          <div class="poster-lang">{{ m.language }}</div>
+          <div class="poster-rate">⭐ {{ m.rating }}</div>
+        </div>
+        <div class="card-body">
+          <div class="card-title">{{ m.title }}</div>
+          <div class="card-meta">
+            <span class="card-votes">👥 {{ m.votes }}</span>
+            <span class="card-genre">{{ m.genre.split('/')[0] }}</span>
+          </div>
+          <button class="card-book-btn">Book Tickets</button>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-inner">
+      <div class="footer-logo">🎬 Magic Movies</div>
+      <div class="footer-copy">© 2025 Magic Movies. All rights reserved.</div>
+      <a href="/logout" style="color:var(--text3);font-size:12px;">Logout</a>
+    </div>
+  </div>
+</footer>
+
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+<style>
+.filter-chip:hover,.filter-chip.active{background:var(--red-dim)!important;border-color:var(--red)!important;color:var(--red2)!important;}
+</style>
+</body>
+</html>
