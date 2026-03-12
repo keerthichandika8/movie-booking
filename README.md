@@ -54,3 +54,6 @@ magic-movies/
 │   └── js/script.js
 └── README.md
 ```
+
+watch the demo link here:
+https://1drv.ms/v/c/1de26de4f90092cb/IQBH-CrTMqm4R78oBzwobzazAf-dc5sDbr1LV8OHYAqjGzQ?e=QWMbrR
